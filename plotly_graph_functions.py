@@ -57,8 +57,7 @@ def plot_stackedbar(values=[],x=[],y=[],colors=[],title='',subtitle='',figsize=(
     fig.show()
 
 
-
-def plot_hbar(values=[],x=[],y=[],colors=[],title='',subtitle='',figsize=(800,450),showlegendvalue=True,subtitle_fontsize='10pt',y_axis_range=None,stack_labels=None):
+def plot_hbar(values,x,y,colors,title,subtitle,figsize=(800,450),showlegendvalue=True,subtitle_fontsize='10pt',y_axis_range=None,stack_labels=None):
     '''
     values (list) : string list of names for each stacked group,
     x (list) : string list of all categorical values to display on x-axis,
@@ -75,12 +74,13 @@ def plot_hbar(values=[],x=[],y=[],colors=[],title='',subtitle='',figsize=(800,45
     # initialize the figure
     fig = go.Figure()
 
+
     # if you want to add custom stack labels
     if stack_labels:
         for i,v in enumerate(values):
             fig.add_trace(go.Bar(
-                                x=x,
-                                y=y[i],
+                                x=x[i],
+                                y=y,
                                 name=v,
                                 marker_color=colors[i],
                                 text=stack_labels[i],
@@ -90,17 +90,17 @@ def plot_hbar(values=[],x=[],y=[],colors=[],title='',subtitle='',figsize=(800,45
     else:
         for i,v in enumerate(values):
             fig.add_trace(go.Bar(
-                                    x=x,
-                                    y=y[i],
+                                    x=x[i],
+                                    y=y,
                                     name=v,
                                     marker_color=colors[i],
-                                    text=y[i],
-                                    textposition='auto' # displays numeric value in bar
+                                    text=x[i],
+                                    textposition='auto', # displays numeric value in bar
+                                    orientation='h'
                                 ))
 
-    fig.update_layout(
+    fig.update_layout(barmode='group',
                     title_text=f'<b>{title}</b><br><span style="font-size: {subtitle_fontsize}">{subtitle}</span>',
-                    xaxis_type='category',
                     showlegend=showlegendvalue,
                     autosize=False,
                     width=figsize[0],
@@ -111,4 +111,46 @@ def plot_hbar(values=[],x=[],y=[],colors=[],title='',subtitle='',figsize=(800,45
     else:
         pass
         
+    fig.update_yaxes(autorange="reversed")
+
+    fig.show()
+
+
+def plot_doublegrouped_hbar(groups,x,x2,y,colors,title,subtitle,figsize=(800,450),showlegendvalue=True,subtitle_fontsize='10pt',y_axis_range=None,stack_labels=None):
+
+    # initialize the figure
+    fig = go.Figure()
+
+    for i,g in groups:
+        fig.add_trace(go.Bar(
+                                    x=x[i],
+                                    y=y,
+                                    name=g,
+                                    marker_color=colors[i],
+                                    text=x[i],
+                                    textposition='auto', # displays numeric value in bar
+                                    orientation='h',
+                                    offset=i
+                                ))
+
+    for i,g in groups:
+        fig.add_trace(go.Bar(
+                                    x=x2[i],
+                                    y=y,
+                                    name=g,
+                                    marker_color=colors[i],
+                                    text=x2[i],
+                                    textposition='auto', # displays numeric value in bar
+                                    orientation='h',
+                                    offset=i,
+                                    base=x[i]
+                                ))
+
+    fig.update_layout(barmode='group',
+                    title_text=f'<b>{title}</b><br><span style="font-size: {subtitle_fontsize}">{subtitle}</span>',
+                    showlegend=True,
+                    autosize=False,
+                    width=figsize[0],
+                    height=figsize[1])
+
     fig.show()
