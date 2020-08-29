@@ -37,8 +37,8 @@ def plot_stackedbar(values=[],x=[],y=[],colors=[],title='',subtitle='',figsize=(
                                     y=y[i],
                                     name=v,
                                     marker_color=colors[i],
-                                    text=y[i],
-                                    textposition='auto' # displays numeric value in bar
+                                    text=[f'{n:,}' for n in y[i]],
+                                    textposition='outside' # displays numeric value in bar
                                 ))
 
     fig.update_layout(barmode='stack',
@@ -84,7 +84,7 @@ def plot_hbar(values,x,y,colors,title,subtitle,figsize=(800,450),showlegendvalue
                                 name=v,
                                 marker_color=colors[i],
                                 text=stack_labels[i],
-                                textposition='auto', # displays numeric value in bar
+                                textposition='outside', # displays numeric value in bar
                                 orientation='h'
                             ))    
     else:
@@ -94,7 +94,7 @@ def plot_hbar(values,x,y,colors,title,subtitle,figsize=(800,450),showlegendvalue
                                     y=y,
                                     name=v,
                                     marker_color=colors[i],
-                                    text=x[i],
+                                    text= [f'{n:,}' for n in x[i]], # OLD: x[i], 
                                     textposition='auto', # displays numeric value in bar
                                     orientation='h'
                                 ))
@@ -104,7 +104,8 @@ def plot_hbar(values,x,y,colors,title,subtitle,figsize=(800,450),showlegendvalue
                     showlegend=showlegendvalue,
                     autosize=False,
                     width=figsize[0],
-                    height=figsize[1])
+                    height=figsize[1],
+                    xaxis=dict(ticks='',showticklabels=False))
 
     if y_axis_range:
         fig.update_yaxes(range=y_axis_range)
@@ -116,41 +117,50 @@ def plot_hbar(values,x,y,colors,title,subtitle,figsize=(800,450),showlegendvalue
     fig.show()
 
 
-def plot_doublegrouped_hbar(groups,x,x2,y,colors,title,subtitle,figsize=(800,450),showlegendvalue=True,subtitle_fontsize='10pt',y_axis_range=None,stack_labels=None):
+def plot_doublegrouped_hbar(groups,labels,x,x2,y,x_colors,x2_colors,title,subtitle,figsize=(800,450),showlegendvalue=True,subtitle_fontsize='10pt',y_axis_range=None,stack_labels=None):
 
     # initialize the figure
-    fig = go.Figure()
+    data=[]
+    
+    for i, l in enumerate(labels):
+        if i==0:
+            for j,g in enumerate(groups):
+                data.append(go.Bar(
+                                y=y,
+                                x=x[j],
+                                name=g+'-'+labels[i],
+                                marker_color=x_colors[j],
+                                # text=[f'{n:,}' for n in x[i]],
+                                # textposition='auto', # displays numeric value in bar
+                                orientation='h',
+                                offsetgroup=j
+                            )
+                )
+        else:
+            for j,g in enumerate(groups):
+                    data.append(go.Bar(
+                                        y=y,
+                                        x=x2[j],
+                                        name=g+'-'+labels[i],
+                                        marker_color=x2_colors[j],
+                                        # text=[f'{n:,}' for n in x2[i]],
+                                        # textposition='auto', # displays numeric value in bar
+                                        orientation='h',
+                                        offsetgroup=j,
+                                        base=x[j]
+                                        ))
 
-    for i,g in groups:
-        fig.add_trace(go.Bar(
-                                    x=x[i],
-                                    y=y,
-                                    name=g,
-                                    marker_color=colors[i],
-                                    text=x[i],
-                                    textposition='auto', # displays numeric value in bar
-                                    orientation='h',
-                                    offset=i
-                                ))
-
-    for i,g in groups:
-        fig.add_trace(go.Bar(
-                                    x=x2[i],
-                                    y=y,
-                                    name=g,
-                                    marker_color=colors[i],
-                                    text=x2[i],
-                                    textposition='auto', # displays numeric value in bar
-                                    orientation='h',
-                                    offset=i,
-                                    base=x[i]
-                                ))
+    fig=go.Figure(data=data)
 
     fig.update_layout(barmode='group',
                     title_text=f'<b>{title}</b><br><span style="font-size: {subtitle_fontsize}">{subtitle}</span>',
                     showlegend=True,
                     autosize=False,
                     width=figsize[0],
-                    height=figsize[1])
+                    height=figsize[1]
+                    # xaxis=dict(ticks='',showticklabels=False)
+                    )
+    fig.update_yaxes(autorange="reversed")
 
     fig.show()
+
